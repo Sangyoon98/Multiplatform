@@ -120,14 +120,16 @@ fun GreetingView(text: String) {
             )
         },
         content = { innerPadding ->
-            Column(
-                Modifier.padding(16.dp, 5.dp)
+            LazyColumn(
+                Modifier
+                    .padding(16.dp, 0.dp)
+                    .fillMaxSize()
             ) {
-                TossBank("토스뱅크")
-                Spacer(modifier = Modifier.height(10.dp))
-                Asset(innerPadding)
-                Spacer(modifier = Modifier.height(10.dp))
-                Invest(innerPadding)
+                item { TossBank("토스뱅크") }
+                item { Spacer(modifier = Modifier.height(10.dp)) }
+                item { Asset(innerPadding) }
+                item { Spacer(modifier = Modifier.height(10.dp)) }
+                item { Invest(innerPadding) }
             }
         },
         bottomBar = {
@@ -252,41 +254,38 @@ fun CardContentLayout(text: String) {
 fun BankList(innerPadding: PaddingValues) {
     val textList = listOf("입출금통장", "신한카드", "토스뱅크 통장", "국민카드", "하나카드", "카카오뱅크 카드")
     val cashList = listOf("1,000,000원", "500,000원", "100,000원", "10,000원", "12,345원", "88,000원")
-    LazyColumn(
+    Column(
         modifier = Modifier.padding(16.dp, 8.dp),
-        contentPadding = innerPadding,
+        //contentPadding = innerPadding,
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        val list = (0..5).map { it.toString() }
-        items(count = list.size) {
-            Row(
-                modifier = Modifier.fillMaxSize(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.AccountCircle,
-                    contentDescription = "Localized description",
-                    modifier = Modifier.size(40.dp)
-                )
-                Spacer(modifier = Modifier.width(10.dp))
-                Column {
-                    Text(textList[it])
-                    Text(cashList[it])
-                }
-                Spacer(modifier = Modifier.weight(1F))
-                Button(
-                    onClick = { /*...*/ }
-                ) {
-                    Text(text = "송금")
-                }
-            }
-            /*Text(
-                text = list[it],
-                style = MaterialTheme.typography.body1,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-            )*/
+        for (i in 0 .. 5) {
+            CashList(name = textList[i], cash = cashList[i])
+        }
+    }
+}
+
+@Composable
+fun CashList(name: String, cash: String) {
+    Row(
+        modifier = Modifier.fillMaxSize(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            imageVector = Icons.Filled.AccountCircle,
+            contentDescription = "Localized description",
+            modifier = Modifier.size(40.dp)
+        )
+        Spacer(modifier = Modifier.width(10.dp))
+        Column {
+            Text(name)
+            Text(cash)
+        }
+        Spacer(modifier = Modifier.weight(1F))
+        Button(
+            onClick = { /*...*/ }
+        ) {
+            Text(text = "송금")
         }
     }
 }
