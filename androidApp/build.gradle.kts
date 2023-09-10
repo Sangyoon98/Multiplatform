@@ -5,7 +5,7 @@ plugins {
 
 android {
     namespace = "com.example.multiplatform.android"
-    compileSdk = 33
+    compileSdk = 34
     defaultConfig {
         applicationId = "com.example.multiplatform.android"
         minSdk = 24
@@ -40,11 +40,16 @@ android {
 
 dependencies {
     implementation(project(":shared"))
-    implementation("androidx.compose.ui:ui:1.4.3")
-    implementation("androidx.compose.ui:ui-tooling:1.4.3")
-    implementation("androidx.compose.ui:ui-tooling-preview:1.4.3")
-    implementation("androidx.compose.foundation:foundation:1.4.3")
-    implementation("androidx.compose.material:material:1.4.3")
-    implementation("androidx.activity:activity-compose:1.7.1")
+    implementation(libs.androidx.ui)
+    implementation(libs.androidx.ui.tooling)
+    implementation(libs.androidx.ui.tooling.preview)
+    implementation(libs.androidx.foundation)
+    implementation(libs.androidx.material)
+    implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.navigation.runtime.ktx)
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.lifecycle.runtime.compose)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.lifecycle.viewmodel.savedstate)
 }

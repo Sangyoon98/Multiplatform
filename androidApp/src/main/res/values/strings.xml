@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="home_fragment">홈</string>
+    <string name="benefit_fragment">혜택</string>
+    <string name="toss_pay_fragment">토스 페이</string>
+    <string name="stock_fragment">주식</string>
+    <string name="all_fragment">전체</string>
+</resources>

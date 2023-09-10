@@ -5,6 +5,8 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -41,18 +43,26 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
 import com.example.multiplatform.Greeting
+import java.time.format.TextStyle
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -63,99 +73,192 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colors.background
                 ) {
-                    GreetingView(Greeting().title())
+                    GreetingView()
                 }
             }
         }
     }
 }
 
-@SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GreetingView(text: String) {
+fun GreetingView() {
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+    val navController = rememberNavController()
+    val bottomNavItems = listOf(
+        BottomNavItem.HomeFragment,
+        BottomNavItem.BenefitFragment,
+        BottomNavItem.TossPayFragment,
+        BottomNavItem.StockFragment,
+        BottomNavItem.AllFragment
+    )
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         backgroundColor = Color(0xFFEEEEEE),
-        topBar = {
-            TopAppBar(
-                elevation = 0.dp,
-                title = {
-                    Image(
-                        painterResource(id = R.drawable.toss_logo_primary),
-                        contentDescription = "Toss Icon"
-                    )
-                },
-                actions = {
-                    IconButton(onClick = { /* doSomething() */ }) {
-                        Icon(
-                            imageVector = Icons.Filled.LocationOn,
-                            contentDescription = "Localized description"
-                        )
-                    }
-                    IconButton(onClick = { /* doSomething() */ }) {
-                        Icon(
-                            imageVector = Icons.Filled.Notifications,
-                            contentDescription = "Localized description"
-                        )
-                    }
-                },
-                backgroundColor = Color(0xFFEEEEEE)
-            )
-        },
-        content = {
-            HomeFragment()
-        },
         bottomBar = {
-            //var selectedItem by remember { mutableIntStateOf(0) }
-            val items = listOf("홈", "혜택", "토스페이", "주식", "전체")
-            val itemsIcon = listOf(R.drawable.tab1, R.drawable.tab2, R.drawable.tab3, R.drawable.tab4, R.drawable.tab5)
-
             NavigationBar(
+                contentColor = Color.Gray,
                 containerColor = Color.White
             ) {
-                items.forEachIndexed { index, item ->
+                val navBackStackEntry by navController.currentBackStackEntryAsState()
+                val currentRoute = navBackStackEntry?.destination?.route
+
+                bottomNavItems.forEach { item ->
                     NavigationBarItem(
                         icon = {
                             Image(
-                                painterResource(id = itemsIcon[index]),
-                                contentDescription = items[index],
+                                painterResource(id = item.icon),
+                                contentDescription = stringResource(id = item.title),
                                 modifier = Modifier.size(20.dp)
                             )
                         },
-                        label = { Text(item) },
-                        selected = false,
-                        onClick = {  }
+                        label = { Text(stringResource(id = item.title)) },
+                        selected = currentRoute == item.screenRoute,
+                        alwaysShowLabel = true,
+                        onClick = {
+                            navController.navigate(item.screenRoute) {
+                                navController.graph.startDestinationRoute?.let {
+                                    popUpTo(it) { saveState = true }
+                                }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        }
                     )
                 }
             }
         }
-    )
+    ) {
+        Box(Modifier.padding(it)){
+            NavigationGraph(navController = navController)
+        }
+    }
 }
 
+
+@Composable
+fun NavigationGraph(navController: NavHostController) {
+    NavHost(navController = navController, startDestination = BottomNavItem.HomeFragment.screenRoute) {
+        composable(BottomNavItem.HomeFragment.screenRoute) {
+            HomeFragment()
+        }
+        composable(BottomNavItem.BenefitFragment.screenRoute) {
+            BenefitFragment()
+        }
+        composable(BottomNavItem.TossPayFragment.screenRoute) {
+            TossPayFragment()
+        }
+        composable(BottomNavItem.StockFragment.screenRoute) {
+            StockFragment()
+        }
+        composable(BottomNavItem.AllFragment.screenRoute) {
+            AllFragment()
+        }
+    }
+}
+
+/**홈**/
 @Composable
 fun HomeFragment() {
+    Column {
+        TopAppBar(
+            elevation = 0.dp,
+            title = {
+                Image(
+                    painterResource(id = R.drawable.toss_logo_primary),
+                    contentDescription = "Toss Icon",
+                    modifier = Modifier.padding(0.dp)
+                )
+            },
+            actions = {
+                IconButton(onClick = { /* doSomething() */ }) {
+                    Icon(
+                        imageVector = Icons.Filled.LocationOn,
+                        contentDescription = "Localized description"
+                    )
+                }
+                IconButton(onClick = { /* doSomething() */ }) {
+                    Icon(
+                        imageVector = Icons.Filled.Notifications,
+                        contentDescription = "Localized description"
+                    )
+                }
+            },
+            backgroundColor = Color(0xFFEEEEEE)
+        )
+        LazyColumn {
+            item { Spacer(modifier = Modifier.height(10.dp)) }
+            item { TossBank("토스뱅크") }
+            item { Spacer(modifier = Modifier.height(10.dp)) }
+            item { Asset() }
+            item { Spacer(modifier = Modifier.height(10.dp)) }
+            item { Invest() }
+            item { Spacer(modifier = Modifier.height(10.dp)) }
+            item { Consumption() }
+            item { Spacer(modifier = Modifier.height(10.dp)) }
+            item { SquareCardLayout() }
+            item { Spacer(modifier = Modifier.height(10.dp)) }
+            item { SettingView() }
+            item { Spacer(modifier = Modifier.height(100.dp)) }
+        }
+    }
+}
+
+/** 혜택 **/
+@Composable
+fun BenefitFragment() {
     LazyColumn(
         Modifier
-            .padding(16.dp, 0.dp)
-            .fillMaxSize()
+            .background(Color.White)
     ) {
-        item { Spacer(modifier = Modifier.height(10.dp)) }
-        item { TossBank("토스뱅크") }
-        item { Spacer(modifier = Modifier.height(10.dp)) }
-        item { Asset() }
-        item { Spacer(modifier = Modifier.height(10.dp)) }
-        item { Invest() }
-        item { Spacer(modifier = Modifier.height(10.dp)) }
-        item { Consumption() }
-        item { Spacer(modifier = Modifier.height(10.dp)) }
-        item { SquareCardLayout() }
-        item { Spacer(modifier = Modifier.height(10.dp)) }
-        item { SettingView() }
-        item { Spacer(modifier = Modifier.height(100.dp)) }
+        item {
+            Text(
+                text = stringResource(id = R.string.benefit_fragment),
+                fontSize = 30.sp,
+                fontWeight = FontWeight.ExtraBold,
+                modifier = Modifier.padding(16.dp, 20.dp)
+            )
+        }
+        item {
+            Spacer(modifier = Modifier.padding(20.dp))
+        }
+        item {
+            val benefitList = listOf(benefitList.A, benefitList.B, benefitList.C, benefitList.D, benefitList.E, benefitList.F, benefitList.G, benefitList.A, benefitList.B, benefitList.C, benefitList.D, benefitList.E, benefitList.F, benefitList.G)
+            benefitList.forEach {
+                BenefitContentLayout(image = it.image, title = it.title, text = it.text)
+            }
+        }
     }
+
+}
+
+enum class benefitList(val image: Int, val title: String, val text: String) {
+    A(R.drawable.bene_1, "친구와 함께 토스 켜고", "포인트 받기"),
+    B(R.drawable.bene_2, "이번 주 미션", "얼마 받을지 보기"),
+    C(R.drawable.bene_4, "라이브 쇼핑", "포인트 받기"),
+    D(R.drawable.bene_5, "행운퀴즈", "추가 혜택 보기"),
+    E(R.drawable.bene_6, "머니 알림 받고", "20원 받기"),
+    F(R.drawable.bene_7, "만보기", "140원 받기"),
+    G(R.drawable.bene_8, "새로운 카드 쓰고", "결제지원금 받기")
+}
+
+/** 토스 페이 **/
+@Composable
+fun TossPayFragment() {
+    TossBank(text = "TossPayFragment")
+}
+
+/** 주식 **/
+@Composable
+fun StockFragment() {
+    TossBank(text = "StockFragment")
+}
+
+/** 전체 **/
+@Composable
+fun AllFragment() {
+    TossBank(text = "AllFragment")
 }
 
 @OptIn(ExperimentalMaterialApi::class)
@@ -163,7 +266,9 @@ fun HomeFragment() {
 fun TossBank(text: String) {
     Card(
         onClick = { /* Do something */ },
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp, 0.dp),
         shape = RoundedCornerShape(20.dp),
         elevation = 0.dp,
         border = null
@@ -177,7 +282,9 @@ fun TossBank(text: String) {
 fun Asset() {
     Card(
         onClick = { /* Do something */ },
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp, 0.dp),
         shape = RoundedCornerShape(20.dp),
         elevation = 0.dp,
         border = null
@@ -209,7 +316,9 @@ fun Asset() {
 fun Invest() {
     Card(
         onClick = { /* Do something */ },
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp, 0.dp),
         shape = RoundedCornerShape(20.dp),
         elevation = 0.dp,
         border = null
@@ -241,7 +350,9 @@ fun Invest() {
 fun Consumption() {
     Card(
         onClick = { /* Do something */ },
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp, 0.dp),
         shape = RoundedCornerShape(20.dp),
         elevation = 0.dp,
         border = null
@@ -257,7 +368,9 @@ fun Consumption() {
 
 @Composable
 fun SquareCardLayout() {
-    LazyRow {
+    LazyRow(
+        contentPadding = PaddingValues(16.dp, 0.dp)
+    ) {
         item { SquareCard(text1 = "1분만에", text2 = "내 보험", text3 = "전부 조회", image = R.drawable.image1) }
         item { Spacer(modifier = Modifier.width(10.dp)) }
         item { SquareCard(text1 = "최근", text2 = "대출 한도", text3 = "조회", image = R.drawable.image2) }
@@ -336,7 +449,9 @@ fun CardContentLayout(text: String) {
 @Composable
 fun CashList(name: String, cash: String, image: Int) {
     Row(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .clickable { },
         verticalAlignment = Alignment.CenterVertically
     ) {
         Image(
@@ -361,7 +476,9 @@ fun CashList(name: String, cash: String, image: Int) {
 @Composable
 fun InvestCashList(name: String, cash: String, image: Int) {
     Row(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .clickable { }
+            .fillMaxSize(),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Image(
@@ -393,9 +510,11 @@ fun SettingView() {
     }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun ImageButton(image: ImageVector, text: String) {
     Card(
+        onClick = {  /*...*/ },
         backgroundColor = Color.LightGray,
         shape = RoundedCornerShape(20.dp),
     ) {
@@ -413,18 +532,72 @@ fun ImageButton(image: ImageVector, text: String) {
     }
 }
 
-@Preview
 @Composable
-fun DefaultPreview() {
-    MyApplicationTheme {
-        GreetingView(Greeting().title())
+fun BenefitContentLayout(image: Int, title: String, text: String) {
+    Row(
+        modifier = Modifier
+            .clickable { }
+            .padding(16.dp, 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Image(
+            painterResource(id = image),
+            contentDescription = "Localized description",
+            modifier = Modifier.size(40.dp)
+        )
+        Spacer(modifier = Modifier.width(10.dp))
+        Column {
+            Text(title, fontWeight = FontWeight.Bold)
+            Text(text, color = Color.Blue)
+        }
+        Spacer(modifier = Modifier.weight(1F))
     }
 }
 
 @Preview
 @Composable
-fun ItemPreview() {
+fun DefaultPreview() {
     MyApplicationTheme {
-        SettingView()
+        GreetingView()
+    }
+}
+
+@Preview
+@Composable
+fun HomePreview() {
+    MyApplicationTheme {
+        HomeFragment()
+    }
+}
+
+@Preview
+@Composable
+fun BenefitPreview() {
+    MyApplicationTheme {
+        BenefitFragment()
+    }
+}
+
+@Preview
+@Composable
+fun TossPayPreview() {
+    MyApplicationTheme {
+        TossPayFragment()
+    }
+}
+
+@Preview
+@Composable
+fun StockPreview() {
+    MyApplicationTheme {
+        StockFragment()
+    }
+}
+
+@Preview
+@Composable
+fun AllPreview() {
+    MyApplicationTheme {
+        AllFragment()
     }
 }
